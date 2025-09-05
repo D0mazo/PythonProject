@@ -1,10 +1,15 @@
-from flask import Flask, request, send_file, render_template
+from flask import Flask, request, send_file, render_template, send_from_directory
 import pandas as pd
 import os
 import io
 import zipfile
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.dirname(os.path.abspath(__file__)))
+
+# Serve CSS from the same directory
+@app.route('/style.css')
+def serve_css():
+    return send_from_directory(os.path.dirname(os.path.abspath(__file__)), 'style.css')
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -18,7 +23,6 @@ def index():
         values_e = df.iloc[:, 4].tolist()
         max_chunk_size = 199
 
-        # Create a zip in memory
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED) as zipf:
             i = 0
@@ -47,5 +51,6 @@ def index():
     return render_template("index.html")
 
 if __name__ == "__main__":
-    app.run(debug=True)
-
+    import webbrowser
+    webbrowser.open("http://localhost:5000")
+    app.run(debug=True, host="0.0.0.0", port=5000)
